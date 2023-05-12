@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Neo.Plugins
 {
-    public class LogPlugin : Plugin, ILogPlugin
+    public class LogPlugin : Plugin
     {
         internal LogQueue logs;
         internal string backend;
@@ -24,15 +24,16 @@ namespace Neo.Plugins
             this.sendThread.IsBackground = true;
             Sender.SetFrom(Settings.Default.Name);
             this.sendThread.Start();
+            Utility.Logging += Log;
         }	
-        public override void Configure()
+        protected override void Configure()
         {
             Settings.Load(GetConfiguration());
         }
         public void sendAllConfiguration()
         {
             //protocol.json
-            var protocolSetting = File.ReadAllText("protocol.json");
+            var protocolSetting = File.ReadAllText("config.json");
             string line = $"Protocol configuration: {protocolSetting}";
             this.logs.EnQueue(line);
             //plugin configuration
@@ -52,7 +53,7 @@ namespace Neo.Plugins
             line = $"node version, {entry.Name}: {entry.Version}, {calling.Name}: {calling.Version}, {executing.Name}: {executing.Version}";
             this.logs.EnQueue(line);
         }
-        void ILogPlugin.Log(string source, LogLevel level, string message)
+        void Log(string source, LogLevel level, object message)
         {
             if (source == "ConsensusService")
             {
